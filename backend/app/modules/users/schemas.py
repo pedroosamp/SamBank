@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
 class UserRequest(BaseModel):
-    id: int
     first_name: str
     last_name: str
     birthday: str
