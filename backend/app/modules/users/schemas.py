@@ -16,3 +16,7 @@ class UpdateUserRequest(BaseModel):
     phone_number: str
     email: str
     national_id: str
+
+class PasswordVerification(BaseModel):
+    password: str
+    new_password: str

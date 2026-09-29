@@ -1,7 +1,8 @@
 from fastapi import APIRouter, status, HTTPException
-from app.modules.users.schemas import CreateUserRequest, UpdateUserRequest
+from app.modules.users.schemas import CreateUserRequest, UpdateUserRequest, PasswordVerification
 from app.modules.users.models import Users
 from app.core.dependencies import db_dependency
+from app.core.auth import bcrypt_context
 
 router = APIRouter(
     prefix="/users",
@@ -16,7 +17,7 @@ async def get_all_users(db: db_dependency):
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency, user_request: CreateUserRequest):
     user_model = user_request.model_dump()
-    user_model["hashed_password"] = user_model["password"]
+    user_model["hashed_password"] = bcrypt_context.hash(user_model["password"])
     del user_model["password"]
     user_model = Users(**user_model)
 
