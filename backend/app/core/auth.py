@@ -3,6 +3,9 @@ from jose import jwt
 from dotenv import load_dotenv
 import os
 from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from pydantic import BaseModel
+from fastapi import APIRouter
 
 load_dotenv()
 
@@ -13,9 +16,19 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
 
-def authenticate_user(email, password):
-    pass
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+def authenticate_user(email: str, password: str, db):
+    user = db.query(Users).filter(Users.email == email).first()
+    if not user:
+        return False
+    if not bcrypt_context.verify(password, user.hashed_password)
+        return False
+    return user
 
 def create_access_token(username: str, user_id: int, expires_delta: timedelta):
     encode = {"sub": username, "id": user_id}
