@@ -2,10 +2,17 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt
 from dotenv import load_dotenv
 import os
+from app.modules.users.models import Users
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from pydantic import BaseModel
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
+from app.core.dependencies import db_dependency
+
+router = APIRouter(
+    prefix="/auth",
+    tags=["auth"]
+)
 
 load_dotenv()
 
@@ -24,9 +31,7 @@ class Token(BaseModel):
 
 def authenticate_user(email: str, password: str, db):
     user = db.query(Users).filter(Users.email == email).first()
-    if not user:
-        return False
-    if not bcrypt_context.verify(password, user.hashed_password)
+    if not user or not bcrypt_context.verify(password, user.hashed_password):
         return False
     return user
 
@@ -35,3 +40,12 @@ def create_access_token(username: str, user_id: int, expires_delta: timedelta):
     expires = datetime.now(timezone.utc) + expires_delta
     encode.update({"exp": expires})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+
+@router.post("/token", response_model=Token)
+async def login(form: OAuth2PasswordRequestForm = Depends(), db: db_dependency = None):
+    user = authenticate_user(form.username, form.password, db)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")
+
+    token = create_access_token(username=user.email, user_id=user.id, expires_delta=timedelta(minutes=30))
+    return {"access_token": token, "token_type": "bearer"}
