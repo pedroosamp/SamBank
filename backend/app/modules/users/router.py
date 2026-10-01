@@ -16,6 +16,7 @@ async def get_user(user: user_dependency):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
     return user
 
+# Cria um usuário
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency, user_request: CreateUserRequest):
     user_model = user_request.model_dump()
@@ -30,31 +31,30 @@ async def create_user(db: db_dependency, user_request: CreateUserRequest):
         db.rollback()
         raise
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(db: db_dependency, user_id: int):
-    user_model = db.query(Users).filter(Users.id == user_id).first()
-    if not user_model:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
-
+# Deleta o usuário logado
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(db: db_dependency, user: user_dependency):
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized")
     try:
-        db.delete(user_model)
+        db.delete(user)
         db.commit()
     except Exception:
         db.rollback()
         raise
 
-@router.put("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def update_user(db: db_dependency, user_id: int, user_request: UpdateUserRequest):
-    user_model = db.query(Users).filter(Users.id == user_id).first()
-    if not user_model:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+# Atualiza os dados do usuário logado
+@router.put("/", status_code=status.HTTP_204_NO_CONTENT)
+async def update_user(db: db_dependency, user: user_dependency, user_request: UpdateUserRequest):
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized")
 
-    user_model.first_name = user_request.first_name
-    user_model.last_name = user_request.last_name
-    user_model.birthday = user_request.birthday
-    user_model.phone_number = user_request.phone_number
-    user_model.national_id = user_request.national_id
-    user_model.email = user_request.email
+    user.first_name = user_request.first_name
+    user.last_name = user_request.last_name
+    user.birthday = user_request.birthday
+    user.phone_number = user_request.phone_number
+    user.national_id = user_request.national_id
+    user.email = user_request.email
 
     try:
         db.commit()
