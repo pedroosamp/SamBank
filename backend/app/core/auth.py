@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.core.dependencies import db_dependency
+from typing import Annotated
 
 router = APIRouter(
     prefix="/auth",
@@ -40,6 +41,22 @@ def create_access_token(username: str, user_id: int, expires_delta: timedelta):
     expires = datetime.now(timezone.utc) + expires_delta
     encode.update({"exp": expires})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def get_current_user(token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("id")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token.")
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate token.")
+
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found.")
+    return user
+
+user_dependency = Annotated[Users, Depends(get_current_user)]
 
 @router.post("/token", response_model=Token)
 async def login(form: OAuth2PasswordRequestForm = Depends(), db: db_dependency = None):

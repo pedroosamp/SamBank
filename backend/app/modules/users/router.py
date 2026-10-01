@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, HTTPException
 from app.modules.users.schemas import CreateUserRequest, UpdateUserRequest, PasswordVerification
 from app.modules.users.models import Users
 from app.core.dependencies import db_dependency
-from app.core.auth import bcrypt_context
+from app.core.auth import bcrypt_context, user_dependency
 
 router = APIRouter(
     prefix="/users",
@@ -10,9 +10,10 @@ router = APIRouter(
 )
 
 @router.get("/", status_code=status.HTTP_200_OK)
-async def get_all_users(db: db_dependency):
-    users = db.query(Users).all()
-    return users
+async def get_user(user: user_dependency):
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
+    return user
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency, user_request: CreateUserRequest):
