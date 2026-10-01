@@ -25,6 +25,6 @@ class UpdateUserRequest(BaseModel):
     email: str
     national_id: str
 
-class PasswordVerification(BaseModel):
+class UserPasswordVerification(BaseModel):
     password: str
     new_password: str

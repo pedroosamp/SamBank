@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.core.dependencies import db_dependency
 from typing import Annotated
+from jose import JWTError
 
 router = APIRouter(
     prefix="/auth",
