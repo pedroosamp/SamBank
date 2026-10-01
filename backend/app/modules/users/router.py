@@ -53,6 +53,8 @@ async def delete_user(db: db_dependency, user: user_dependency):
 async def update_user(db: db_dependency, user: user_dependency, user_request: UpdateUserRequest):
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    if db.query(Users).filter(Users.email == user_request.email, Users.id != user.id).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already registered.")
 
     user.first_name = user_request.first_name
     user.last_name = user_request.last_name
