@@ -17,7 +17,7 @@ async def get_user(user: user_dependency):
     return user
 
 # Cria um usuário
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 async def create_user(db: db_dependency, user_request: CreateUserRequest):
     user_model = user_request.model_dump()
     user_model["hashed_password"] = bcrypt_context.hash(user_model["password"])
@@ -27,9 +27,11 @@ async def create_user(db: db_dependency, user_request: CreateUserRequest):
     try:
         db.add(user_model)
         db.commit()
+        db.refresh(user_model)
     except Exception:
         db.rollback()
         raise
+    return user_model
 
 # Deleta o usuário logado
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
