@@ -24,6 +24,9 @@ async def create_user(db: db_dependency, user_request: CreateUserRequest):
     del user_model["password"]
     user_model = Users(**user_model)
 
+    if db.query(Users).filter(Users.email == user_model.email).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already registered.")
+
     try:
         db.add(user_model)
         db.commit()
