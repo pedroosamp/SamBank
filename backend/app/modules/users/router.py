@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status, HTTPException
-from app.modules.users.schemas import CreateUserRequest, UpdateUserRequest, PasswordVerification
+from app.modules.users.schemas import CreateUserRequest, UpdateUserRequest, PasswordVerification, UserResponse
 from app.modules.users.models import Users
 from app.core.dependencies import db_dependency
 from app.core.auth import bcrypt_context, user_dependency
@@ -9,7 +9,8 @@ router = APIRouter(
     tags=["users"]
 )
 
-@router.get("/", status_code=status.HTTP_200_OK)
+# Devolve o usuário logado
+@router.get("/", status_code=status.HTTP_200_OK, response_model=UserResponse)
 async def get_user(user: user_dependency):
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
