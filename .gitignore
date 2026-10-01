@@ -1,3 +1,4 @@
 *.pyc
 backend/app.db
 backend/.env
+backend/test.db
