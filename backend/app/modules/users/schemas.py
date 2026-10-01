@@ -15,7 +15,7 @@ class CreateUserRequest(BaseModel):
     birthday: date
     phone_number: str = Field(min_length=4, max_length=15)
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=32)
     national_id: str = Field(min_length=9, max_length=16)
 
 class UpdateUserRequest(BaseModel):
@@ -28,4 +28,4 @@ class UpdateUserRequest(BaseModel):
 
 class UserPasswordVerification(BaseModel):
     password: str
-    new_password: str
+    new_password: str = Field(min_length=8, max_length=32)
