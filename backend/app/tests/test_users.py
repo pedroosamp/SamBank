@@ -1,6 +1,8 @@
 from app.tests.utils import *
 from app.core.auth import get_current_user
 from app.core.dependencies import get_db
+from app.modules.accounts.models import Accounts
+from app.modules.users.models import Users
 from app.main import app
 from fastapi import status
 from datetime import date
@@ -19,6 +21,7 @@ def test_get_user(test_user):
     assert response.json()["national_id"] == "12345678910"
 
 def test_create_user(test_user):
+    db = TestingSessionLocal()
     response = client.post("/users", json={
         "first_name": "Test", "last_name": "User", "email": "test_creation@email.com",
         "birthday": "1900-09-09", "phone_number": "12312312312",
@@ -31,6 +34,11 @@ def test_create_user(test_user):
     assert response.json()["email"] == "test_creation@email.com"
     assert response.json()["phone_number"] == "12312312312"
     assert response.json()["national_id"] == "12312312311"
+
+    user = db.query(Users).filter(Users.email == "test_creation@email.com").first()
+    accounts = db.query(Accounts).filter(Accounts.user_id == user.id).all()
+    assert len(accounts) == 2
+    assert {account.account_type for account in accounts} == {"checking", "savings"}
 
 def test_create_user_email_exists(test_user):
     response = client.post("/users", json={

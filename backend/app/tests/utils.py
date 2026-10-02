@@ -51,6 +51,7 @@ def test_user():
     db.commit()
     yield user
     with db.connection() as connection:
+        connection.execute(text("DELETE FROM accounts;"))
         connection.execute(text("DELETE FROM users;"))
         connection.commit()
 
