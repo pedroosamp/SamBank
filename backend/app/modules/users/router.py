@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, HTTPException
 from app.modules.users.schemas import CreateUserRequest, UpdateUserRequest, UserPasswordVerification, UserResponse
 from app.modules.users.models import Users
+from app.modules.accounts.models import Accounts
 from app.core.dependencies import db_dependency
 from app.core.auth import bcrypt_context, user_dependency
 
@@ -36,6 +37,25 @@ async def create_user(db: db_dependency, user_request: CreateUserRequest):
 
     try:
         db.add(user_model)
+        db.flush()
+
+        checking_account_model = Accounts(
+            user_id=user_model.id,
+            name="Checking Account",
+            account_type="checking",
+            currency="USD",
+            balance=0,
+        )
+        saving_account_model = Accounts(
+            user_id=user_model.id,
+            name="Saving Account",
+            account_type="savings",
+            currency="USD",
+            balance=0,
+        )
+
+        db.add(checking_account_model)
+        db.add(saving_account_model)
         db.commit()
         db.refresh(user_model)
     except Exception:

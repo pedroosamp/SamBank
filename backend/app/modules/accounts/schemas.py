@@ -15,8 +15,3 @@ class AccountResponse(BaseModel):
     currency: str
     balance: Decimal
     created_at: datetime
-
-
-class CreateAccountRequest(BaseModel):
-    name: str
-    account_type: AccountType

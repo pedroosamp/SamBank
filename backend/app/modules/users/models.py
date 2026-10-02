@@ -1,5 +1,6 @@
 from app.core.database import Base
 from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy.orm import relationship
 
 class Users(Base):
     __tablename__ = "users"
@@ -15,3 +16,6 @@ class Users(Base):
     hashed_password = Column(String, nullable=False)
 
     national_id = Column(String, unique=True, nullable=False)
+
+    # Relationships
+    accounts = relationship("Accounts", back_populates="user", cascade="all, delete-orphan")
