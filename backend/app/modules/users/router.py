@@ -26,6 +26,10 @@ async def create_user(db: db_dependency, user_request: CreateUserRequest):
 
     if db.query(Users).filter(Users.email == user_model.email).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already registered.")
+    if db.query(Users).filter(Users.national_id == user_model.national_id).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="National ID is already registered.")
+    if db.query(Users).filter(Users.phone_number == user_model.phone_number).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Phone number is already registered.")
 
     try:
         db.add(user_model)
@@ -40,7 +44,7 @@ async def create_user(db: db_dependency, user_request: CreateUserRequest):
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(db: db_dependency, user: user_dependency):
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
     try:
         db.delete(user)
         db.commit()
@@ -52,9 +56,13 @@ async def delete_user(db: db_dependency, user: user_dependency):
 @router.put("/me", status_code=status.HTTP_204_NO_CONTENT)
 async def update_user(db: db_dependency, user: user_dependency, user_request: UpdateUserRequest):
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
     if db.query(Users).filter(Users.email == user_request.email, Users.id != user.id).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already registered.")
+    if db.query(Users).filter(Users.national_id == user_request.national_id, Users.id != user.id).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="National ID is already registered.")
+    if db.query(Users).filter(Users.phone_number == user_request.phone_number, Users.id != user.id).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Phone number is already registered.")
 
     user.first_name = user_request.first_name
     user.last_name = user_request.last_name
