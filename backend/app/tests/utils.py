@@ -30,8 +30,8 @@ def override_get_db():
     finally:
         db.close()
 
-def override_get_current_user(db: Session = Depends(get_db)):
-    return db.query(Users).filter(Users.id == 1).first()
+def override_get_current_user():
+    return {"email": "test_email", "id": 1}
 
 client = TestClient(app)
 

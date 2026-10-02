@@ -11,10 +11,11 @@ router = APIRouter(
 
 # Devolve o usuário logado
 @router.get("/me", status_code=status.HTTP_200_OK, response_model=UserResponse)
-async def get_user(user: user_dependency):
+async def get_user(db: db_dependency, user: user_dependency):
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
-    return user
+    user_model = db.query(Users).filter(Users.id == user.get("id")).first()
+    return user_model
 
 # Cria um usuário
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
@@ -45,8 +46,9 @@ async def create_user(db: db_dependency, user_request: CreateUserRequest):
 async def delete_user(db: db_dependency, user: user_dependency):
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
+    user_model = db.query(Users).filter(Users.id == user.get("id")).first()
     try:
-        db.delete(user)
+        db.delete(user_model)
         db.commit()
     except Exception:
         db.rollback()
@@ -57,19 +59,21 @@ async def delete_user(db: db_dependency, user: user_dependency):
 async def update_user(db: db_dependency, user: user_dependency, user_request: UpdateUserRequest):
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
-    if db.query(Users).filter(Users.email == user_request.email, Users.id != user.id).first():
+    user_model = db.query(Users).filter(Users.id == user.get("id")).first()
+
+    if db.query(Users).filter(Users.email == user_request.email, Users.id != user_model.id).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already registered.")
-    if db.query(Users).filter(Users.national_id == user_request.national_id, Users.id != user.id).first():
+    if db.query(Users).filter(Users.national_id == user_request.national_id, Users.id != user_model.id).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="National ID is already registered.")
-    if db.query(Users).filter(Users.phone_number == user_request.phone_number, Users.id != user.id).first():
+    if db.query(Users).filter(Users.phone_number == user_request.phone_number, Users.id != user_model.id).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Phone number is already registered.")
 
-    user.first_name = user_request.first_name
-    user.last_name = user_request.last_name
-    user.birthday = user_request.birthday
-    user.phone_number = user_request.phone_number
-    user.national_id = user_request.national_id
-    user.email = user_request.email
+    user_model.first_name = user_request.first_name
+    user_model.last_name = user_request.last_name
+    user_model.birthday = user_request.birthday
+    user_model.phone_number = user_request.phone_number
+    user_model.national_id = user_request.national_id
+    user_model.email = user_request.email
 
     try:
         db.commit()
@@ -82,11 +86,13 @@ async def update_user(db: db_dependency, user: user_dependency, user_request: Up
 async def update_user_password(db: db_dependency, user: user_dependency, verification: UserPasswordVerification):
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
-    if not bcrypt_context.verify(verification.password, user.hashed_password):
+    user_model = db.query(Users).filter(Users.id == user.get("id")).first()
+
+    if not bcrypt_context.verify(verification.password, user_model.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")
     if verification.password == verification.new_password:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="The new password must be different from the current password.")
-    user.hashed_password = bcrypt_context.hash(verification.new_password)
+    user_model.hashed_password = bcrypt_context.hash(verification.new_password)
     try:
         db.commit()
     except Exception:

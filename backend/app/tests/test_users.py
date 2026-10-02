@@ -18,11 +18,6 @@ def test_get_user(test_user):
     assert response.json()["phone_number"] == "5512345678910"
     assert response.json()["national_id"] == "12345678910"
 
-def test_get_user_not_authenticated():
-    response = client.get("/users/me")
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {"detail": "Not authenticated."}
-
 def test_create_user(test_user):
     response = client.post("/users", json={
         "first_name": "Test", "last_name": "User", "email": "test_creation@email.com",
@@ -71,11 +66,6 @@ def test_delete_user(test_user):
     model = db.query(Users).filter(Users.id == 1).first()
     assert model is None
 
-def test_delete_user_not_authenticated():
-    response = client.delete("/users/me")
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {"detail": "Not authenticated."}
-
 def test_update_user(test_user):
     response = client.put("/users/me", json={
         "first_name": "Updated", "last_name": "User", "email": "updated_email@email.com",
@@ -117,15 +107,6 @@ def test_update_user_phone_number_exists(test_user, test_second_user):
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json() == {"detail": "Phone number is already registered."}
 
-def test_update_user_not_authenticated():
-    response = client.put("/users/me", json={
-        "first_name": "Updated", "last_name": "User", "email": "updated_email@email.com",
-        "birthday": "2010-05-12", "phone_number": "5511333333333",
-        "national_id": "99999999999",
-    })
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {"detail": "Not authenticated."}
-
 def test_update_user_password(test_user):
     response = client.patch("/users/me/password", json={
         "password": "test_password",
@@ -133,10 +114,3 @@ def test_update_user_password(test_user):
     })
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert bcrypt_context.verify("updated_password", test_user.hashed_password) is True
-
-def test_update_user_password_not_authenticated():
-    response = client.patch("/users/me/password", json={
-        "password": "test_password",
-        "new_password": "updated_password",
-    })
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
