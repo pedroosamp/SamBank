@@ -1,11 +1,11 @@
 from app.core.database import Base
-from sqlalchemy import String, Column, Integer, Numeric, DateTime, func
+from sqlalchemy import String, Column, Integer, Numeric, DateTime, func, ForeignKey
 
 class Accounts(Base):
     __tablename__ = "accounts"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String, nullable=False)
     account_type = Column(String, nullable=False)
     currency = Column(String, nullable=False)
