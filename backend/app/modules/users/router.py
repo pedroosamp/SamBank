@@ -15,6 +15,8 @@ async def get_user(db: db_dependency, user: user_dependency):
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
     user_model = db.query(Users).filter(Users.id == user.get("id")).first()
+    if user_model is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found.")
     return user_model
 
 # Cria um usuário
@@ -47,6 +49,8 @@ async def delete_user(db: db_dependency, user: user_dependency):
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
     user_model = db.query(Users).filter(Users.id == user.get("id")).first()
+    if user_model is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found.")
     try:
         db.delete(user_model)
         db.commit()
@@ -60,6 +64,8 @@ async def update_user(db: db_dependency, user: user_dependency, user_request: Up
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
     user_model = db.query(Users).filter(Users.id == user.get("id")).first()
+    if user_model is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found.")
 
     if db.query(Users).filter(Users.email == user_request.email, Users.id != user_model.id).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already registered.")
@@ -87,6 +93,8 @@ async def update_user_password(db: db_dependency, user: user_dependency, verific
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
     user_model = db.query(Users).filter(Users.id == user.get("id")).first()
+    if user_model is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found.")
 
     if not bcrypt_context.verify(verification.password, user_model.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")

@@ -17,6 +17,8 @@ def test_authenticate_user(test_user):
     wrong_password_user = authenticate_user(test_user.email, "1234", db)
     assert wrong_password_user is False
 
+    db.close()
+
 def test_create_access_token():
     email = "test_user@email.com"
     user_id = 1

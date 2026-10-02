@@ -55,10 +55,10 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
 
     return {"email": user_email, "id": user_id}
 
-user_dependency = Annotated[Users, Depends(get_current_user)]
+user_dependency = Annotated[dict, Depends(get_current_user)]
 
 @router.post("/token", response_model=Token)
-async def login(form: OAuth2PasswordRequestForm = Depends(), db: db_dependency = None):
+async def login(db: db_dependency, form: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form.username, form.password, db)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")
