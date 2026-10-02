@@ -20,3 +20,4 @@ Clone: `https://github.com/pedroosamp/SamBank.git`
 7. Aplique as migrations: `alembic upgrade head`
 8. Rode as suites de teste: `pytest --disable-warnings -vv`
 9. Rode o FastAPI: `uvicorn app.main:app --reload`
+10. Acesse a documentação: `127.0.0.1:8000/docs`
