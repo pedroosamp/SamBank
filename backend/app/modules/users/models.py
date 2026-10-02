@@ -10,8 +10,8 @@ class Users(Base):
     last_name = Column(String, nullable=False)
     birthday = Column(Date, nullable=False)
 
-    phone_number = Column(String, nullable=False)
+    phone_number = Column(String, unique=True, nullable=False)
     email = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
 
-    national_id = Column(String, nullable=False)
+    national_id = Column(String, unique=True, nullable=False)
