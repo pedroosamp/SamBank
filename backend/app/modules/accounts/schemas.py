@@ -9,6 +9,7 @@ class AccountType(str, Enum):
 
 class AccountResponse(BaseModel):
     id: int
+    account_number: str
     name: str
     account_type: AccountType
     user_id: int
