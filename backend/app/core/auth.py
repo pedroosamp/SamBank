@@ -57,7 +57,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
 
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
-@router.post("/token", response_model=Token)
+@router.post("/login", response_model=Token)
 async def login(db: db_dependency, form: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form.username, form.password, db)
     if not user:
