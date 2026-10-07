@@ -64,8 +64,9 @@ async function handleLogin(event: React.SubmitEvent<HTMLFormElement>) {
     formData.append("username", email)
     formData.append("password", password)
 
-    const response = await fetch("http://127.0.0.1:8000/auth/login", {
+    const response = await fetch("http://localhost:8000/auth/login", {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
@@ -73,4 +74,7 @@ async function handleLogin(event: React.SubmitEvent<HTMLFormElement>) {
     })
 
     const data = await response.json();
+    if (response.ok) {
+        window.location.href = "/"
+    }
 }

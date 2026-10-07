@@ -53,7 +53,7 @@ export default function Register() {
                     </div>
                 </div>
 
-                <div className="col-span-6">
+                <div className="col-span-12">
                     <label className="text-(--text-primary)">Password</label>
                     <div className="flex flex-row border text-(--border) rounded-lg p-3">
                         <Lock className="text-(--text-secondary) me-3 p-0.5"></Lock>
@@ -61,13 +61,13 @@ export default function Register() {
                     </div>
                 </div>
 
-                <div className="col-span-6">
+                {/*<div className="col-span-6">
                     <label className="text-(--text-primary)">Confirm password</label>
                     <div className="flex flex-row border text-(--border) rounded-lg p-3">
                         <Lock className="text-(--text-secondary) me-3 p-0.5"></Lock>
                         <input className="text-(--text-secondary) outline-none w-full" type="password" placeholder="••••••••••••"></input>
                     </div>
-                </div>
+                </div>*/}
 
                 <div className="col-span-12">
                     <div className="flex mt-1 text-start gap-2 items-center">

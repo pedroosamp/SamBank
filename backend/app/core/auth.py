@@ -1,15 +1,14 @@
 from datetime import datetime, timedelta, timezone
-from jose import jwt
+from jose import jwt, JWTError
 from dotenv import load_dotenv
 import os
 from app.modules.users.models import Users
 from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from app.core.dependencies import db_dependency
 from typing import Annotated
-from jose import JWTError
 
 router = APIRouter(
     prefix="/auth",
@@ -25,7 +24,6 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
 
 class Token(BaseModel):
     access_token: str
@@ -43,7 +41,15 @@ def create_access_token(email: str, user_id: int, expires_delta: timedelta):
     encode.update({"exp": expires})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
+async def get_current_user(request: Request):
+    token = request.cookies.get("access_token")
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated."
+        )
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_email = payload.get("sub")
@@ -57,11 +63,22 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
 
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
-@router.post("/login", response_model=Token)
-async def login(db: db_dependency, form: OAuth2PasswordRequestForm = Depends()):
+@router.post("/login", status_code=status.HTTP_200_OK)
+async def login(response: Response, db: db_dependency, form: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form.username, form.password, db)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials.")
 
     token = create_access_token(email=user.email, user_id=user.id, expires_delta=timedelta(minutes=30))
-    return {"access_token": token, "token_type": "bearer"}
+
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        secure=False,
+        path="/",
+        max_age=30 * 60
+    )
+
+    return {"detail": "success"}
